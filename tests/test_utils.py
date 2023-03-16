@@ -27,6 +27,7 @@ TXT_FMT = (
 @pytest.mark.parametrize(
     ("items", "text"),
     [
+        (None, ""),
         (("",), ""),
         (("apples",), "apples"),
         (("apples", "oranges"), "apples, and oranges"),

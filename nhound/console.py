@@ -6,15 +6,8 @@ from __future__ import annotations
 import logging
 import logging.config
 import sys
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from collections.abc import Mapping  # pragma: no cover
-
-from typing import Any
 
 import click
-import semver  # type: ignore[import]
 import structlog
 from click_help_colors import HelpColorsCommand  # type: ignore[import]
 from rich.console import Console
@@ -91,7 +84,10 @@ def configure_logging(log_level: str, verbose: bool) -> None:
         def filter(self, _: logging.LogRecord) -> bool:  # noqa: A003
             # We have no choice in the method's name.
             # We do not care about record thus mark it as _.
-            return verbose
+            #
+            # The pragam no cover can be removed once we actually use
+            # something useful.
+            return verbose  # pragma: no cover
 
     logging.config.dictConfig(
         {
@@ -144,37 +140,12 @@ def configure_logging(log_level: str, verbose: bool) -> None:
                     "level": _lvl[log_level],
                     "propagate": True,
                 },
-                "gnupg": {
-                    "handlers": ["default", "file"],
-                    "level": _lvl[log_level],
-                    "propagate": True,
-                },
-                "concurrent": {
-                    "handlers": ["default", "file"],
-                    "level": _lvl[log_level],
-                    "propagate": True,
-                },
-                "plumbum": {
-                    "handlers": ["default", "file"],
-                    "level": _lvl[log_level],
-                    "propagate": True,
-                },
-                "urllib3": {
-                    "handlers": ["default", "file"],
-                    "level": _lvl[log_level],
-                    "propagate": True,
-                },
                 "requests": {
                     "handlers": ["default", "file"],
                     "level": _lvl[log_level],
                     "propagate": True,
                 },
                 "rich": {
-                    "handlers": ["default", "file"],
-                    "level": _lvl[log_level],
-                    "propagate": True,
-                },
-                "asyncio": {
                     "handlers": ["default", "file"],
                     "level": _lvl[log_level],
                     "propagate": True,
@@ -191,62 +162,6 @@ def configure_logging(log_level: str, verbose: bool) -> None:
         wrapper_class=structlog.make_filtering_bound_logger(_lvl[log_level]),
         cache_logger_on_first_use=True,
     )
-
-
-class MutuallyExclusiveOption(click.Option):
-    """Mutually Exclusive Option.
-
-    This is a click option that can be used to make sure that only one
-    of a
-    set of options can be used at the same time.
-
-    Note that there is no type hinting… I tried and failed.
-    """
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Initialize."""
-        self.mutually_exclusive = set(kwargs.pop("mutually_exclusive", []))
-        _help = kwargs.get("help", "")
-        if self.mutually_exclusive:  # pragma: no cover
-            ex_str = ", ".join(self.mutually_exclusive)
-            kwargs["help"] = _help + (
-                " NOTE: This argument is mutually exclusive with "
-                " arguments: [" + ex_str + "]."
-            )
-        super().__init__(*args, **kwargs)
-
-    def handle_parse_result(
-        self, ctx: click.Context, opts: Mapping[str, Any], args: list[str]
-    ) -> tuple[Any, list[str]]:
-        """Handle parse result."""
-        if self.mutually_exclusive.intersection(opts) and self.name in opts:
-            msg = (
-                f"Illegal usage: `{self.name}` is mutually exclusive with "
-                f"arguments `{', '.join(self.mutually_exclusive)}`."
-            )
-            raise click.UsageError(msg)
-        return super().handle_parse_result(ctx, opts, args)
-
-
-def validate_semver(
-    ctx: click.core.Context, param: click.Option, value: str
-) -> Any | None:
-    """Validate the option is semver compliante.
-
-    If the option is None, do nothing.
-    """
-    if value is None:
-        return None
-    try:
-        ver = semver.VersionInfo.parse(value.lstrip("v"))
-    except ValueError as ex:
-        # We do want to wrap `ex` in a new exception
-        # so that click can handle it properly.
-        rlog = structlog.get_logger("validate_semver")
-        rlog.debug("Debug info.", ctx=ctx, param=param, value=value, error=ex)
-        raise click.UsageError(f"{value}: {ex}") from ex  # noqa: EM102, TRY003
-    else:
-        return ver
 
 
 @click.command(
@@ -302,8 +217,10 @@ def main(
     _version_check()
 
     # Run commands.
+    logger.debug("Starting real work…")
 
     # We should be done…
+    logger.debug("That's all folks!")
     wprint("Operation was successful.", level="success")
     sys.exit(EXIT_CODE_SUCCESS)
 
