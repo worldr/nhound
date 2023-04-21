@@ -40,7 +40,7 @@ repos:
       - id: python-bandit-vulnerability-check
         args: [--verbose, --ini, .banditrc, --recursive, setupr]
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.260
+    rev: v0.0.262
     hooks:
       - id: ruff
   - repo: https://github.com/abravalheri/validate-pyproject
@@ -73,7 +73,7 @@ repos:
   #     ________________
   # ___/ Docker linters \________________________________________________________
   - repo: https://github.com/IamTheFij/docker-pre-commit
-    rev: v2.1.1
+    rev: v3.0.1
     hooks:
       - id: docker-compose-check
   #     _______________
