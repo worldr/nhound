@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright © 2023-present Worldr Technologies Limited. All Rights Reserved.
-"""Utilities."""
+"""Cohort tests."""
 import os
 from unittest.mock import patch
 
@@ -8,7 +8,7 @@ import pendulum
 import pytest
 
 from nhound.cohort import NOW, Cohort
-from nhound.user import User
+from nhound.user import Page, User
 
 uuid = "17ceeff0-e5a5-11ed-aa7f-2cf05d7be51f"
 name = "Malenia Blade Of Miquella"
@@ -88,3 +88,20 @@ def test_cohort_get_by_name(sut, key, expected) -> None:
 )
 def test_cohort_get_by_email(sut, key, expected) -> None:
     assert sut.get_by_email(key) == expected
+
+
+def test_get_data_for_email_nothing(sut) -> None:
+    assert sut.get_data_for_email() == []
+
+
+def test_get_data_for_email_has_pages() -> None:
+    sut = Cohort()
+    old = sut.stale.subtract(months=13)
+    new = sut.stale.add(months=13)
+    page = Page("UUID", "TITLE", "URL", old, old)
+    usr.pages.add(page)
+    usr.pages.add(Page("UUID", "TITLE", "URL", new, new))
+    sut.add_user(usr)
+    assert sut.get_data_for_email() == [
+        (usr, [page]),
+    ]

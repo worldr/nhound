@@ -14,11 +14,13 @@ import structlog
 from click_help_colors import HelpColorsCommand  # type: ignore[import]
 from dotenv import load_dotenv
 from orjson import loads
+from redmail import EmailSender  # pyright: ignore [reportPrivateImportUsage]
 from rich.console import Console
 from rich.prompt import Confirm
 from rich.traceback import install
 
 from nhound import __version__
+from nhound.email import IEMail
 from nhound.inotion import INotion, INotionError
 from nhound.utils import COLOUR_INFO, VersionCheck, check_if_latest_version, wprint
 
@@ -215,32 +217,15 @@ def main(
     # Check latest version.
     _version_check()
 
-    # Run commands.
+    # Do all the hard work.
     rlog.debug("Starting real work…")
-
-    # Get enviorment variables from .env file.
-    load_dotenv()  # take environment variables from .env.
-    token = ""  # There should never be a real value here.  # nosec
-    try:
-        token = os.environ["NOTION_TOKEN"]
-    except KeyError as e:
-        rlog.exception("Missing environment variable", var=e)
-        wprint("Missing environment variable NOTION_TOKEN.", level="error")
-        sys.exit(EXIT_CODE_OPERATION_FAILED)
-
-    # Get UUID of Notion pages from environment variable.
-    uuids = loads(os.environ["NHOUND_PAGES_UUIDS"])
-
-    # Do stuff with Notion API.
-    try:
-        inotion = INotion(token)
-        inotion.stuff(uuids)
-    except INotionError as e:
-        rlog.exception("INotionError", error=e)
-        sys.exit(EXIT_CODE_NOTION_API_FAILED)
+    status = _do_stuff(rlog)
 
     # We should be done…
-    wprint("Operation was successful.", level="success")
+    if status:
+        wprint("Operation was successful.", level="success")
+    else:
+        wprint("Operation might have failed.", level="warning")
     rlog.info(
         "That's all folks!",
         duration=(
@@ -248,6 +233,70 @@ def main(
         ).in_words(),  # pyright: ignore[reportGeneralTypeIssues]
     )
     sys.exit(EXIT_CODE_SUCCESS)
+
+
+def _do_stuff(rlog: structlog.BoundLogger) -> bool:  # pragma: no cover
+    """Do stuff.
+
+    Why not unit tests? Well, this is actually doing work. We could mock
+    everything, but is there a point to doing that?
+
+    A functional tests might be better. Again, it would not be trivial
+    to set up.
+    """
+    # Get enviorment variables from .env file.
+    load_dotenv()  # take environment variables from .env.
+    token = ""  # There should never be a real value here.  # nosec
+    try:
+        token = os.environ["NHOUND_NOTION_TOKEN"]
+    except KeyError as e:
+        rlog.exception("Missing environment variable", var=e)
+        wprint("Missing environment variable NHOUND_NOTION_TOKEN.", level="error")
+        sys.exit(EXIT_CODE_OPERATION_FAILED)
+
+    # Get UUID of Notion pages from environment variable.
+    uuids = loads(os.environ["NHOUND_PAGES_UUIDS"])
+
+    # Set up email forwarding.
+    #
+    # Note that if NHOUND_SMTP_USERNAME and NHOUND_SMTP_PASSWORD are not set,
+    # then the email will be sent without authentication.
+    email = IEMail(
+        EmailSender(
+            host=os.environ["NHOUND_SMTP_HOST"],
+            port=int(os.environ["NHOUND_SMTP_PORT"]),
+            use_starttls=os.environ["NHOUND_SMTP_USE_STARTTLS"].lower().capitalize()
+            is False,
+            username=os.getenv(
+                "NHOUND_SMTP_USERNAME", None  # type: ignore[arg-type]
+            ),  # pyright: ignore[reportGeneralTypeIssues]
+            password=os.getenv(
+                "NHOUND_SMTP_PASSWORD", None  # type: ignore[arg-type]
+            ),  # pyright: ignore[reportGeneralTypeIssues]
+        ),
+        os.environ["NHOUND_SMTP_EMAIL_SUBJECT"],
+        os.environ["NHOUND_SMTP_EMAIL_SENDER"],
+    )
+
+    # Do stuff with Notion API.
+    status = True
+    try:
+        inotion = INotion(token)
+        for data in inotion.get_email_data(uuids):
+            status = status & email.send(
+                receivers=[
+                    data[0].email,
+                ],
+                body_params={"name": data[0].name, "pages": data[1]},
+            )
+    except INotionError as e:
+        rlog.exception("INotionError", error=e)
+        sys.exit(EXIT_CODE_NOTION_API_FAILED)
+
+    if not status:
+        wprint("Email sending failed.", level="warning")
+        return False
+    return True
 
 
 def _version_check() -> None:

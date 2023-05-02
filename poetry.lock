@@ -983,7 +983,7 @@ trio = ["async_generator", "trio"]
 name = "jinja2"
 version = "3.1.2"
 description = "A very fast and expressive template engine."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -1069,7 +1069,7 @@ testing = ["coverage", "pytest", "pytest-cov", "pytest-regressions"]
 name = "markupsafe"
 version = "2.1.2"
 description = "Safely add untrusted strings to HTML/XML markup."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -2097,6 +2097,26 @@ Pygments = ">=2.5.1"
 md = ["cmarkgfm (>=0.8.0)"]
 
 [[package]]
+name = "redmail"
+version = "0.6.0"
+description = "Email sending library"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "redmail-0.6.0-py3-none-any.whl", hash = "sha256:8e64a680ffc8aaf8054312bf8b216da8fed20669181b77b1f1ccbdf4ee064427"},
+    {file = "redmail-0.6.0.tar.gz", hash = "sha256:0447cbd76deb2788b2d831c12e22b513587e99f725071d9951a01b0f2b8d0a72"},
+]
+
+[package.dependencies]
+jinja2 = "*"
+
+[package.extras]
+docs = ["pydata-sphinx-theme", "sphinx (>=1.7.5)", "sphinx-book-theme", "sphinx-copybutton", "sphinx-material"]
+style = ["css-inline"]
+test = ["Pillow", "css-inline", "jinja2", "matplotlib", "openpyxl", "pandas", "pytest"]
+
+[[package]]
 name = "regex"
 version = "2023.3.23"
 description = "Alternative regular expression module, to replace re."
@@ -2752,4 +2772,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<3.12"
-content-hash = "2be70d37b11b5d25c980c8e88f46938b47ffa4cd5f85b0a5fb4204fe911e6fef"
+content-hash = "6bd53a018b10ea0b8413c88931d4cfc1a0e79d75f8d0580c52ef39ef3a617ab3"

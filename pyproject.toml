@@ -23,6 +23,7 @@ types-requests = "^2.28.11.15"
 notion-client = "^2.0.0"
 python-dotenv = "^1.0.0"
 orjson = "^3.8.11"
+redmail = "^0.6.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.1.0"

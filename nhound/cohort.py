@@ -8,7 +8,7 @@ import pendulum
 import structlog
 from rich import print as rprint
 
-from nhound.user import User
+from nhound.user import Page, User
 from nhound.utils import wprint
 
 rlog = structlog.get_logger("nhound.cohort")
@@ -99,3 +99,12 @@ class Cohort:
                         )
                     else:
                         wprint(f"{page.title} is fresh.", level="info")
+
+    def get_data_for_email(self) -> list[tuple[User, list[Page]]]:
+        """Get all the data in a format email can understand."""
+        ret = []
+        for _, user in self._users.items():
+            pages = [x for x in user.pages if x.last_edited_time < self.stale]
+            if pages:
+                ret.append((user, pages))
+        return ret

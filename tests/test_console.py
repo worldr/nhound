@@ -32,16 +32,16 @@ def test_version():
         (False, VersionCheck.LAGGING),
     ],
 )
-@patch("nhound.console.INotion")
-def test_nhound_version_status(get_m_inotion, ask, check):
+@patch("nhound.console._do_stuff")
+def test_nhound_version_status(m_stuff, ask, check):
     with patch("nhound.console.check_if_latest_version") as mock_check, patch(
         "nhound.console.Confirm.ask"
     ) as mock_ask:
         mock_ask.return_value = ask
         mock_check.return_value = check
+        m_stuff.return_value = None
 
         runner = CliRunner()
         result = runner.invoke(main, ["--verbose"])
 
         assert result is not None
-        assert not get_m_inotion.called

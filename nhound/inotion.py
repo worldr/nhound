@@ -115,8 +115,13 @@ class INotion:
     def stuff(self, uuids: tuple[typing.Any, ...]) -> None:
         """Stuff."""
         rlog.debug("stuff start")
+        self._get_users()
+        self._get_pages(uuids)
+        self._cohort.print_data()
+        rlog.debug("stuff end")
 
-        # Get Users.
+    def _get_users(self) -> None:
+        """Get all the Notion users."""
         try:
             self.get_users()
         except APIResponseError as e:
@@ -124,7 +129,8 @@ class INotion:
             rlog.error(msg)
             raise INotionError(msg) from e
 
-        # Get pages.
+    def _get_pages(self, uuids: tuple[typing.Any, ...]) -> None:
+        """Get all the Notion pages."""
         for _id in uuids:
             try:
                 self._get_page_data(_id)
@@ -133,6 +139,12 @@ class INotion:
                 rlog.error(msg, uuid=_id, error=e)
                 continue
 
-        # Print output.
+    def get_email_data(
+        self, uuids: tuple[typing.Any, ...]
+    ) -> list[tuple[User, list[Page]]]:
+        """Get data suitable for sending emails."""
+        rlog.debug("stuff start")
+        self._get_users()
+        self._get_pages(uuids)
         self._cohort.print_data()
-        rlog.debug("stuff end")
+        return self._cohort.get_data_for_email()
