@@ -5,31 +5,30 @@ from __future__ import annotations
 
 import logging
 import logging.config
+import os
 import sys
+from pathlib import Path
 
 import click
+import pendulum
 import structlog
 from click_help_colors import HelpColorsCommand  # type: ignore[import]
+from dotenv import load_dotenv
+from orjson import loads
 from rich.console import Console
 from rich.prompt import Confirm
 from rich.traceback import install
 
 from nhound import __version__
-from nhound.utils import (
-    COLOUR_INFO,
-    VersionCheck,
-    check_if_latest_version,
-    wprint,
-)
+from nhound.inotion import INotion, INotionError
+from nhound.utils import COLOUR_INFO, VersionCheck, check_if_latest_version, wprint
 
 # Rich.
 install(show_locals=True)
 
 EXIT_CODE_SUCCESS = 0
 EXIT_CODE_OPERATION_FAILED = 1
-EXIT_CODE_SCRIPT_FAILED = 2
-EXIT_CODE_SERVICE_ACCOUNT_FAILED = 3
-EXIT_CODE_YAML_DATA_FAILED = 4
+EXIT_CODE_NOTION_API_FAILED = 2
 
 
 pre_chain = [
@@ -181,9 +180,7 @@ def configure_logging(log_level: str, verbose: bool) -> None:
     help="Chose the logging level from the available options. "
     "This affect the file logs as well.",
 )
-@click.option(
-    "-v", "--version", is_flag=True, help="Print the version and exit"
-)
+@click.option("-v", "--version", is_flag=True, help="Print the version and exit")
 @click.option("--verbose", is_flag=True, help="Print the logs to stdout")
 def main(
     log_level: str,
@@ -196,6 +193,9 @@ def main(
     different for all the scripts. Please check the user documentation
     for the exact values.
     """
+    # Start time.
+    start_time = pendulum.now("UTC")
+
     # Prints the current version and exits.
     if version:
         click.echo(__version__)
@@ -203,8 +203,8 @@ def main(
 
     # Configure logging.
     configure_logging(log_level, verbose)
-    logger = structlog.get_logger("nhound")
-    logger.debug(
+    rlog = structlog.get_logger("nhound")
+    rlog.debug(
         "All the loggers",
         loggers=list(logging.root.manager.loggerDict),
     )
@@ -217,11 +217,37 @@ def main(
     _version_check()
 
     # Run commands.
-    logger.debug("Starting real work…")
+    rlog.debug("Starting real work…")
+
+    # Get enviorment variables from .env file.
+    load_dotenv()  # take environment variables from .env.
+    token = ""  # There should never be a real value here.  # nosec
+    try:
+        token = os.environ["NOTION_TOKEN"]
+    except KeyError as e:
+        rlog.exception("Missing environment variable", var=e)
+        wprint("Missing environment variable NOTION_TOKEN.", level="error")
+        sys.exit(EXIT_CODE_OPERATION_FAILED)
+
+    # Get UUID of Notion pages from the JSON file.
+    uuids = tuple(loads(Path("uuids.json").read_bytes())["uuids"])
+
+    # Do stuff with Notion API.
+    try:
+        inotion = INotion(token)
+        inotion.stuff(uuids)
+    except INotionError as e:
+        rlog.exception("INotionError", error=e)
+        sys.exit(EXIT_CODE_NOTION_API_FAILED)
 
     # We should be done…
-    logger.debug("That's all folks!")
     wprint("Operation was successful.", level="success")
+    rlog.info(
+        "That's all folks!",
+        duration=(
+            pendulum.now("UTC") - start_time
+        ).in_words(),  # pyright: ignore[reportGeneralTypeIssues]
+    )
     sys.exit(EXIT_CODE_SUCCESS)
 
 
@@ -231,9 +257,7 @@ def _version_check() -> None:
     if check == VersionCheck.LATEST:
         wprint(f"This is the latest version {__version__}.", level="info")
     elif check == VersionCheck.LAGGING:
-        wprint(
-            "there is a new version available: please update.", level="warning"
-        )
+        wprint("there is a new version available: please update.", level="warning")
         if Confirm.ask("Exit and update?", default=True):
             wprint(
                 "Please run [i]python -m pip install -U nhound[/i]",
