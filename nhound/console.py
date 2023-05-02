@@ -7,7 +7,6 @@ import logging
 import logging.config
 import os
 import sys
-from pathlib import Path
 
 import click
 import pendulum
@@ -229,8 +228,8 @@ def main(
         wprint("Missing environment variable NOTION_TOKEN.", level="error")
         sys.exit(EXIT_CODE_OPERATION_FAILED)
 
-    # Get UUID of Notion pages from the JSON file.
-    uuids = tuple(loads(Path("uuids.json").read_bytes())["uuids"])
+    # Get UUID of Notion pages from environment variable.
+    uuids = loads(os.environ["NHOUND_PAGES_UUIDS"])
 
     # Do stuff with Notion API.
     try:
