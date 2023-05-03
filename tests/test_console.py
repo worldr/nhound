@@ -39,7 +39,7 @@ def test_nhound_version_status(m_stuff, ask, check):
     ) as mock_ask:
         mock_ask.return_value = ask
         mock_check.return_value = check
-        m_stuff.return_value = None
+        m_stuff.return_value = ask  # This is a gross above of the ask variable!
 
         runner = CliRunner()
         result = runner.invoke(main, ["--verbose"])

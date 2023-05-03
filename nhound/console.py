@@ -7,6 +7,7 @@ import logging
 import logging.config
 import os
 import sys
+from pathlib import Path
 
 import click
 import pendulum
@@ -181,10 +182,19 @@ def configure_logging(log_level: str, verbose: bool) -> None:
     help="Chose the logging level from the available options. "
     "This affect the file logs as well.",
 )
+@click.option(
+    "-e",
+    "--env",
+    default=Path(Path.cwd() / ".env"),
+    show_default=True,
+    type=click.Path(exists=True),
+    help="Which .env file to load.",
+)
 @click.option("-v", "--version", is_flag=True, help="Print the version and exit")
 @click.option("--verbose", is_flag=True, help="Print the logs to stdout")
 def main(
     log_level: str,
+    env: Path,
     version: bool,
     verbose: bool,
 ) -> None:
@@ -219,7 +229,7 @@ def main(
 
     # Do all the hard work.
     rlog.debug("Starting real work…")
-    status = _do_stuff(rlog)
+    status = _do_stuff(rlog, env)
 
     # We should be done…
     if status:
@@ -235,7 +245,7 @@ def main(
     sys.exit(EXIT_CODE_SUCCESS)
 
 
-def _do_stuff(rlog: structlog.BoundLogger) -> bool:  # pragma: no cover
+def _do_stuff(rlog: structlog.BoundLogger, env: Path) -> bool:  # pragma: no cover
     """Do stuff.
 
     Why not unit tests? Well, this is actually doing work. We could mock
@@ -245,7 +255,8 @@ def _do_stuff(rlog: structlog.BoundLogger) -> bool:  # pragma: no cover
     to set up.
     """
     # Get enviorment variables from .env file.
-    load_dotenv()  # take environment variables from .env.
+    rlog.debug("Loading environment variables from .env file.", env=env)
+    load_dotenv(env)  # take environment variables from .env.
     token = ""  # There should never be a real value here.  # nosec
     try:
         token = os.environ["NHOUND_NOTION_TOKEN"]
@@ -274,7 +285,6 @@ def _do_stuff(rlog: structlog.BoundLogger) -> bool:  # pragma: no cover
                 "NHOUND_SMTP_PASSWORD", None  # type: ignore[arg-type]
             ),  # pyright: ignore[reportGeneralTypeIssues]
         ),
-        os.environ["NHOUND_SMTP_EMAIL_SUBJECT"],
         os.environ["NHOUND_SMTP_EMAIL_SENDER"],
     )
 

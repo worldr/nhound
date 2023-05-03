@@ -14,50 +14,56 @@ class IEMail:
 
     # Template for email body in HTML format.
     html = """
-        <h1>Hi {{ name }},</h1>
-        <p>The following Notion page(s) require your attension:</p>
-        <dl>
-        {% for page in pages %}
-            <dt>{{ page.title }}</dt>
-            <dd>{{ page.url }}</dd>
-        {% endfor %}
-        </dl>
-        <p>Either update them or archive them!</p>
+<h1>Hi {{ name }},</h1>
+<p>The following {{pages|length}} Notion page{% if pages|length > 1 %}s{% endif %} require your attension:
+require your attension:</p>
+<dl>
+{% for page in pages %}
+    <dt>{{ page.title }}</dt>
+    <dd>{{ page.url }}</dd>
+{% endfor %}
+</dl>
+<p>Either update them or archive them!</p>
 
-        <p>Thank you.</p>
+<p>Thank you.</p>
 
-        <p>Nhound bot.</p>
-    """
+<p>Nhound bot.</p>
+    """  # noqa: E501
 
     # Template for email body in text format.
     text = """
-        Hi {{ name }},
+Hi {{ name }},
 
-        The following Notion page(s) require your attension:
-        {% for page in pages %}
-            - {{ page.title }} ({{ page.url }})
-        {% endfor %}
+The following {{pages|length}} Notion pages{% if pages|length > 1 %}s{% endif %}require your attension:
+{% for page in pages %}
+    - {{ page.title }} -- {{ page.url }}.
+{% endfor %}
 
-        Either update them or archive them!
+Either update them or archive them!
 
-        Thank you.
+Thank you.
 
-        Nhound bot.
-        {{ company }}
-    """
+Nhound bot.
+{{ company }}
+    """  # noqa: E501
 
-    def __init__(self, email: EmailSender, subject: str, sender: str) -> None:
+    def __init__(self, email: EmailSender, sender: str) -> None:
         """Initialize."""
         self._email = email
-        self._subject = subject
         self._sender = sender
 
     def send(self, receivers: list, body_params: dict[str, str | list[Page]]) -> bool:
         """Send email."""
+        sz = len(body_params["pages"])
+        if sz == 0:
+            return True
+        subject = f"{sz} Notion pages requires your attension"
+        if sz == 1:
+            subject = f"{sz} Notion page requires your attension"
         try:
             with self._email:
                 self._email.send(
-                    subject=self._subject,
+                    subject=subject,
                     sender=self._sender,
                     receivers=receivers,
                     text=self.text,
