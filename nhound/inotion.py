@@ -53,7 +53,7 @@ class INotion:
         page = self._notion.pages.retrieve(_id)
         title = "UNSET"
         try:
-            title = page["url"].rsplit("/", 1)[-1].rsplit("-", 1)[0]  # type: ignore[index] # noqa: E501
+            title = page["url"].rsplit("/", 1)[-1].rsplit("-", 1)[0]  # type: ignore[index]
         except KeyError as e:
             rlog.exception(e)
         _tmp = Page(
@@ -63,14 +63,14 @@ class INotion:
             pendulum.parse(page.get("created_time")),  # type: ignore[union-attr]
             pendulum.parse(page.get("last_edited_time")),  # type: ignore[union-attr]
         )
-        usr = self._cohort.get_by_uuid(page.get("created_by")["id"])  # type: ignore[union-attr] # noqa: E501
+        usr = self._cohort.get_by_uuid(page.get("created_by")["id"])  # type: ignore[union-attr]
         if usr is not None:
             usr.pages.add(_tmp)
-        usr = self._cohort.get_by_uuid(page.get("last_edited_by")["id"])  # type: ignore[union-attr] # noqa: E501
+        usr = self._cohort.get_by_uuid(page.get("last_edited_by")["id"])  # type: ignore[union-attr]
         if usr is not None:
             usr.pages.add(_tmp)
         rlog.info("Found a page", page=_tmp)
-        blocks = self._notion.blocks.children.list(_id)["results"]  # type: ignore[index]  # noqa: E501
+        blocks = self._notion.blocks.children.list(_id)["results"]  # type: ignore[index]
         for block in blocks:
             if block["type"] == "child_page":
                 self._get_page_data(block["id"])

@@ -42,7 +42,7 @@ commitizen = "^2.31.0"
 python-semantic-release = "7.33.2"
 pytest-cov = "^4.0.0"
 pydocstyle = "^6.1.1"
-ruff = "^0.0.260"
+ruff = "^0.0.264"
 dlint = "^0.14.0"
 ipython = "^8.5.0"
 pytest-sugar = "^0.9.6"
@@ -149,44 +149,47 @@ match-dir = "nhound"
 [tool.ruff]
 line-length = 88
 select = [
-  "F",
-  "E",
-  "W",
   "I",
+  "N",
   "D",
   "UP",
-  "N",
   "YTT",
   "ANN",
   "S",
-  "BLE",
   # "FBT", # boolean traps: Why? ¯\_(ツ)_/¯
   "B",
   "A",
+  # "COM",  # Black or add-trailing-comma can do all this comma insertion automatically.
   "C4",
+  "DTZ",
   "T10",
+  "DJ",
   "EM",
+  "EXE",
   "ISC",
   "ICN",
+  "G",
+  "INP",
+  "PIE",
   "T20",
+  "PYI",
   "PT",
   "Q",
+  "RSE",
   "RET",
+  "SLF",
   "SIM",
   "TID",
+  "TCH",
+  "INT",
   "ARG",
-  "DTZ",
+  "PTH",
   "ERA",
   "PD",
   "PGH",
-  # "PL", # Pylint, the horror! The horror!
-  "PIE",
-  # "COM",  # Black or add-trailing-comma can do all this comma insertion automatically.
-  "INP",
-  "EXE",
-  "TCH",
+  # "PL",  # PyLint: The Horror. The Horror.
   "TRY",
-  "PTH",
+  "NPY",
   "RUF",
 ]
 
@@ -242,13 +245,13 @@ exclude = [
   "node_modules",
   "venv",
 ]
-per-file-ignores = { "test_**.py" = ["D100", "D103", "S101", "ANN"] }
+per-file-ignores = { "test_**.py" = ["D100", "D103", "S101", "ANN", "SLF001"] }
 
 # Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
-# Assume Python 3.10.
-target-version = "py310"
+# Assume Python 3.11.
+target-version = "py311"
 
 [tool.ruff.mccabe]
 # Unlike Flake8, default to a complexity level of 10.

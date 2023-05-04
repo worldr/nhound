@@ -28,7 +28,7 @@ require your attension:</p>
 <p>Thank you.</p>
 
 <p>Nhound bot.</p>
-    """  # noqa: E501
+    """
 
     # Template for email body in text format.
     text = """
@@ -45,7 +45,7 @@ Thank you.
 
 Nhound bot.
 {{ company }}
-    """  # noqa: E501
+    """
 
     def __init__(self, email: EmailSender, sender: str) -> None:
         """Initialize."""

@@ -93,7 +93,7 @@ class Cohort:
                     if page.last_edited_time < self.stale:
                         wprint(
                             f"{page.title} is stale, "
-                            f"it was editted {page.last_edited_time.diff_for_humans(NOW)} now. "  # noqa: E501
+                            f"it was editted {page.last_edited_time.diff_for_humans(NOW)} now. "
                             f"<{page.url}>",
                             level="warning",
                         )

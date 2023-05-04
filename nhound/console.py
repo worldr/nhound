@@ -47,7 +47,7 @@ pre_chain = [
 def configure_logging(log_level: str, verbose: bool) -> None:
     """Configure all the logging."""
     # Logging levels
-    # https://www.structlog.org/en/stable/_modules/structlog/_log_levels.html?highlight=log%20level  # noqa: E501
+    # https://www.structlog.org/en/stable/_modules/structlog/_log_levels.html?highlight=log%20level
     _lvl = {
         "critical": 50,
         "error": 40,
@@ -105,7 +105,7 @@ def configure_logging(log_level: str, verbose: bool) -> None:
                     "()": structlog.stdlib.ProcessorFormatter,
                     "processors": [
                         *shared_processors,
-                        structlog.stdlib.ProcessorFormatter.remove_processors_meta,  # noqa: E501
+                        structlog.stdlib.ProcessorFormatter.remove_processors_meta,
                         structlog.processors.JSONRenderer(),
                     ],
                     "foreign_pre_chain": pre_chain,
@@ -114,7 +114,7 @@ def configure_logging(log_level: str, verbose: bool) -> None:
                     "()": structlog.stdlib.ProcessorFormatter,
                     "processors": [
                         *shared_processors,
-                        structlog.stdlib.ProcessorFormatter.remove_processors_meta,  # noqa: E501
+                        structlog.stdlib.ProcessorFormatter.remove_processors_meta,
                         structlog.dev.ConsoleRenderer(colors=True),
                     ],
                     "foreign_pre_chain": pre_chain,
