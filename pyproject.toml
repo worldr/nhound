@@ -17,9 +17,13 @@ rich = ">=12.4.4,<14.0.0"
 click = "^8.1.3"
 click-help-colors = "^0.9.1"
 pendulum = "^2.1.2"
-structlog = "^22.1.0"
+structlog = "^23"
 requests = "^2.28.2"
 types-requests = "^2.28.11.15"
+notion-client = "^2.0.0"
+python-dotenv = "^1.0.0"
+orjson = "^3.8.11"
+redmail = "^0.6.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.1.0"
@@ -38,18 +42,23 @@ commitizen = "^2.31.0"
 python-semantic-release = "7.33.2"
 pytest-cov = "^4.0.0"
 pydocstyle = "^6.1.1"
-ruff = "^0.0.260"
+ruff = "^0.0.264"
 dlint = "^0.14.0"
 ipython = "^8.5.0"
 pytest-sugar = "^0.9.6"
 requests-mock = "^1.10.0"
+ipdb = "^0.13.13"
+types-attrs = "^19.1.0"
+types-decorator = "^5.1.8.3"
+types-typed-ast = "^1.5.8.6"
+ptpython = "^3.0.23"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.black]
-line-length = 79
+line-length = 88
 include = '\.pyi?$'
 target-version = ['py310']
 fast = true
@@ -68,7 +77,7 @@ exclude = '''
 
 [tool.isort]
 profile = "black"
-line_length = 79
+line_length = 88
 known_third_party = [
   "click",
   "click_help_colors",
@@ -139,46 +148,49 @@ pythonPlatform = "Linux"
 match-dir = "nhound"
 
 [tool.ruff]
-line-length = 79
+line-length = 88
 select = [
-  "F",
-  "E",
-  "W",
   "I",
+  "N",
   "D",
   "UP",
-  "N",
   "YTT",
   "ANN",
   "S",
-  "BLE",
   # "FBT", # boolean traps: Why? ¯\_(ツ)_/¯
   "B",
   "A",
+  # "COM",  # Black or add-trailing-comma can do all this comma insertion automatically.
   "C4",
+  "DTZ",
   "T10",
+  "DJ",
   "EM",
+  "EXE",
   "ISC",
   "ICN",
+  "G",
+  "INP",
+  "PIE",
   "T20",
+  "PYI",
   "PT",
   "Q",
+  "RSE",
   "RET",
+  "SLF",
   "SIM",
   "TID",
+  "TCH",
+  "INT",
   "ARG",
-  "DTZ",
+  "PTH",
   "ERA",
   "PD",
   "PGH",
-  # "PL", # Pylint, the horror! The horror!
-  "PIE",
-  # "COM",  # Black or add-trailing-comma can do all this comma insertion automatically.
-  "INP",
-  "EXE",
-  "TCH",
+  # "PL",  # PyLint: The Horror. The Horror.
   "TRY",
-  "PTH",
+  "NPY",
   "RUF",
 ]
 
@@ -234,13 +246,13 @@ exclude = [
   "node_modules",
   "venv",
 ]
-per-file-ignores = { "test_**.py" = ["D100", "D103", "S101", "ANN"] }
+per-file-ignores = { "test_**.py" = ["D100", "D103", "S101", "ANN", "SLF001"] }
 
 # Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
-# Assume Python 3.10.
-target-version = "py310"
+# Assume Python 3.11.
+target-version = "py311"
 
 [tool.ruff.mccabe]
 # Unlike Flake8, default to a complexity level of 10.
