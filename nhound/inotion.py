@@ -3,13 +3,17 @@
 """Interface to Notion."""
 import logging
 import typing
+from re import search
 
 import pendulum
 import structlog
 from notion_client import APIResponseError, Client
 from notion_client.helpers import collect_paginated_api, is_full_page
+from pendulum.datetime import DateTime
 
+from nhound import NOW
 from nhound.cohort import Cohort
+from nhound.dehumanize import dehumanize
 from nhound.user import Page, User
 
 rlog = structlog.get_logger("nhound.inotion")
@@ -21,6 +25,9 @@ class INotionError(Exception):
 
 class INotion:
     """A interface to Notion's API."""
+
+    _nhound_delimiters: typing.ClassVar[str] = "nhound{(.+?)}"
+    _nhound_default_threashold: typing.ClassVar[int] = 13  # weeks.
 
     def __init__(self, token: str) -> None:
         """Init."""
@@ -49,6 +56,39 @@ class INotion:
                 )
         rlog.info("Got users from Notion", count=self._cohort.size)
 
+    def _parse_callout_block(
+        self, blocks: list[typing.Any]
+    ) -> tuple[list[User], DateTime]:
+        """Analyse any callout block."""
+        users: list[User] = []
+        threashold = NOW.subtract(weeks=self._nhound_default_threashold)
+        for block in blocks:
+            if block["type"] == "callout":
+                for item in block["callout"]["rich_text"]:
+                    if item["type"] == "mention":
+                        usr = self._cohort.get_by_uuid(item["mention"]["user"]["id"])
+                        if usr is not None:
+                            users.append(usr)
+                        rlog.debug("Found callout user", user=usr)
+                    if item["type"] == "text":
+                        try:
+                            # This will overwirght the standard threashold.
+                            date = search(  # type: ignore [union-attr]
+                                self._nhound_delimiters, item["text"]["content"]
+                            ).group(  # pyright: ignore [reportOptionalMemberAccess]
+                                1
+                            )
+                            threashold = dehumanize(date)
+                            rlog.debug(
+                                "Found nhoud callout date",
+                                text=item["text"]["content"],
+                                date=date,
+                                threashold=threashold,
+                            )
+                        except AttributeError:
+                            continue
+        return (users, threashold)
+
     def _get_page_data(self, _id: str) -> None:
         page = self._notion.pages.retrieve(_id)
         title = "UNSET"
@@ -56,21 +96,29 @@ class INotion:
             title = page["url"].rsplit("/", 1)[-1].rsplit("-", 1)[0]  # type: ignore[index]
         except KeyError as e:
             rlog.exception(e)
-        _tmp = Page(
+        blocks = self._notion.blocks.children.list(_id)["results"]  # type: ignore[index]
+        users, threashold = self._parse_callout_block(blocks)
+        my_page = Page(
             _id,
             title,
             page.get("url"),  # type: ignore[union-attr]
             pendulum.parse(page.get("created_time")),  # type: ignore[union-attr]
             pendulum.parse(page.get("last_edited_time")),  # type: ignore[union-attr]
+            threashold,
         )
-        usr = self._cohort.get_by_uuid(page.get("created_by")["id"])  # type: ignore[union-attr]
-        if usr is not None:
-            usr.pages.add(_tmp)
-        usr = self._cohort.get_by_uuid(page.get("last_edited_by")["id"])  # type: ignore[union-attr]
-        if usr is not None:
-            usr.pages.add(_tmp)
-        rlog.info("Found a page", page=_tmp)
-        blocks = self._notion.blocks.children.list(_id)["results"]  # type: ignore[index]
+        if not users:
+            # We have users in the callout block.
+            for user in users:
+                user.pages.add(my_page)  # pyright: ignore [reportOptionalMemberAccess]
+        else:
+            # Wehave no users in the callout block.
+            usr = self._cohort.get_by_uuid(page.get("created_by")["id"])  # type: ignore[union-attr]
+            if usr is not None:
+                usr.pages.add(my_page)
+            usr = self._cohort.get_by_uuid(page.get("last_edited_by")["id"])  # type: ignore[union-attr]
+            if usr is not None:
+                usr.pages.add(my_page)
+
         for block in blocks:
             if block["type"] == "child_page":
                 self._get_page_data(block["id"])
@@ -103,6 +151,7 @@ class INotion:
                 pendulum.parse(  # pyright: ignore [reportPrivateImportUsage]
                     page.get("last_edited_time")
                 ),  # pyright: ignore [reportPrivateImportUsage]
+                NOW.subtract(weeks=self._nhound_default_threashold),
             )
             usr = self._cohort.get_by_uuid(page.get("created_by")["id"])
             if usr is not None:

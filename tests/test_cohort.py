@@ -98,9 +98,9 @@ def test_get_data_for_email_has_pages() -> None:
     sut = Cohort()
     old = sut.stale.subtract(months=13)
     new = sut.stale.add(months=13)
-    page = Page("UUID", "TITLE", "URL", old, old)
+    page = Page("UUID", "TITLE", "URL", old, old, sut.stale)
     usr.pages.add(page)
-    usr.pages.add(Page("UUID", "TITLE", "URL", new, new))
+    usr.pages.add(Page("UUID", "TITLE", "URL", new, new, sut.stale))
     sut.add_user(usr)
     assert sut.get_data_for_email() == [
         (usr, [page]),

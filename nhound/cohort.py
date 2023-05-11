@@ -8,12 +8,11 @@ import pendulum
 import structlog
 from rich import print as rprint
 
+from nhound import NOW
 from nhound.user import Page, User
 from nhound.utils import wprint
 
 rlog = structlog.get_logger("nhound.cohort")
-
-NOW = pendulum.now("UTC")  # We should have a basic timer of now.
 
 
 class Cohort:
@@ -90,7 +89,7 @@ class Cohort:
             if user.pages:
                 rprint(f"{uuid} {user.name} → ")
                 for page in user.pages:
-                    if page.last_edited_time < self.stale:
+                    if page.last_edited_time < page.threashold_time:
                         wprint(
                             f"{page.title} is stale, "
                             f"it was editted {page.last_edited_time.diff_for_humans(NOW)} now. "
@@ -104,7 +103,7 @@ class Cohort:
         """Get all the data in a format email can understand."""
         ret = []
         for _, user in self._users.items():
-            pages = [x for x in user.pages if x.last_edited_time < self.stale]
+            pages = [x for x in user.pages if x.last_edited_time < x.threashold_time]
             if pages:
                 ret.append((user, pages))
         return ret
