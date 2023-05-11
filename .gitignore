@@ -128,7 +128,7 @@ celerybeat.pid
 # Environments
 .envrc
 .env
-.env-google
+.env.*
 .venv
 env/
 venv/

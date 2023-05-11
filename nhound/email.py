@@ -15,8 +15,7 @@ class IEMail:
     # Template for email body in HTML format.
     html = """
 <h1>Hi {{ name }},</h1>
-<p>The following {{pages|length}} Notion page{% if pages|length > 1 %}s{% endif %} require your attension:
-require your attension:</p>
+<p>The following {{pages|length}} Notion page{% if pages|length > 1 %}s{% endif %} require your attension:</p>
 <dl>
 {% for page in pages %}
     <dt>{{ page.title }}</dt>

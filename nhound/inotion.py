@@ -27,9 +27,8 @@ class INotion:
     """A interface to Notion's API."""
 
     _nhound_delimiters: typing.ClassVar[str] = "nhound{(.+?)}"
-    _nhound_default_threashold: typing.ClassVar[int] = 13  # weeks.
 
-    def __init__(self, token: str) -> None:
+    def __init__(self, token: str, threashold: int = 13) -> None:
         """Init."""
         logger = structlog.wrap_logger(
             logging.getLogger("notion-client"),
@@ -38,6 +37,8 @@ class INotion:
         )
         self._notion = Client(auth=token, logger=logger, log_level=logging.DEBUG)
         self._cohort = Cohort()
+        self._nhound_default_threashold = threashold
+        rlog.info("Initialized INotion", threashold=self._nhound_default_threashold)
 
     def get_users(self) -> None:
         """Get users."""

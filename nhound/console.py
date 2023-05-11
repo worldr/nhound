@@ -15,7 +15,7 @@ import structlog
 from click_help_colors import HelpColorsCommand  # type: ignore[import]
 from dotenv import load_dotenv
 from orjson import loads
-from redmail import EmailSender  # pyright: ignore [reportPrivateImportUsage]
+from redmail import EmailSender, gmail  # pyright: ignore [reportPrivateImportUsage]
 from rich.console import Console
 from rich.prompt import Confirm
 from rich.traceback import install
@@ -272,26 +272,30 @@ def _do_stuff(rlog: structlog.BoundLogger, env: Path) -> bool:  # pragma: no cov
     #
     # Note that if NHOUND_SMTP_USERNAME and NHOUND_SMTP_PASSWORD are not set,
     # then the email will be sent without authentication.
-    email = IEMail(
-        EmailSender(
-            host=os.environ["NHOUND_SMTP_HOST"],
-            port=int(os.environ["NHOUND_SMTP_PORT"]),
-            use_starttls=os.environ["NHOUND_SMTP_USE_STARTTLS"].lower().capitalize()
-            is False,
-            username=os.getenv(
-                "NHOUND_SMTP_USERNAME", None  # type: ignore[arg-type]
-            ),  # pyright: ignore[reportGeneralTypeIssues]
-            password=os.getenv(
-                "NHOUND_SMTP_PASSWORD", None  # type: ignore[arg-type]
-            ),  # pyright: ignore[reportGeneralTypeIssues]
-        ),
-        os.environ["NHOUND_SMTP_EMAIL_SENDER"],
+    my_sender = EmailSender(
+        host=os.environ["NHOUND_SMTP_HOST"],
+        port=int(os.environ["NHOUND_SMTP_PORT"]),
+        use_starttls=os.environ["NHOUND_SMTP_USE_STARTTLS"].lower().capitalize()
+        is False,
     )
+    if os.getenv("NHOUND_SMTP_USERNAME", None):
+        rlog.info("Using Google SMTP server.")
+        gmail.username = os.environ["NHOUND_SMTP_USERNAME"]
+        gmail.password = os.environ["NHOUND_SMTP_PASSWORD"]
+        my_sender = gmail
+    else:
+        rlog.warning("Using custom SMTP server. Probably testing…")
+        rlog.warning("Run: `python -m smtpd -n -c DebuggingServer localhost:1025`")
+
+    email = IEMail(my_sender, os.environ["NHOUND_SMTP_EMAIL_SENDER"])
 
     # Do stuff with Notion API.
     status = True
     try:
-        inotion = INotion(token)
+        inotion = INotion(
+            token,
+            int(os.getenv("NHOUND_PAGES_ARE_STALE_AFTER_X_WEEKS", 13)),
+        )
         for data in inotion.get_email_data(uuids):
             status = status & email.send(
                 receivers=[
