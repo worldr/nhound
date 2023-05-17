@@ -25,7 +25,6 @@ def dehumanize(text: str) -> Any:
         return NOW
 
     # Value must be an interger.
-    value = 1
     try:
         value = int(span)
     except ValueError as e:
