@@ -18,7 +18,7 @@ All pages without the integration enabled cannot be scanned.
 
 ### Callout
 
-![A callout example.](./docs/assets/callout-example.png)
+<img src="https://github.com/worldr/nhound/blob/main/docs/assets/callout-example.png" />
 
 Each page is automatically scanned and the creator and last person who edited it
 being hounded by the default time — set with
