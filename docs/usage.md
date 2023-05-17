@@ -54,7 +54,7 @@ day. Therefore, once a day seems like a reasonable guess.
 ### Test
 
 It is recommended to test this on just one page (and sub pages) for a start.
-Just have a look at the [development Tl;DR section](./development.md).
+Just have a look at the development Tl;DR section.
 
 ### Environment variables configuration
 
