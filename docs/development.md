@@ -1,10 +1,28 @@
 # Development
 
+## TL;DR
+
+You should have [poetry](https://python-poetry.org/) installed, for example via
+[pipx](https://pypa.github.io/pipx/) or equivalent. Optionally, use
+[direnv](https://direnv.net/) to load the poetry virtual environment and `.env`
+data into your shell.
+
+```bash
+poetry install --sync                       # This should install and enable a virtual environment.
+poetry shell                                # Switch to the virtual environment.
+pre-commit install                          # Install pre-commit hooks.
+pre-commit install --hook-type commit-msg   # commitizen checks for good commit messages.
+cp env-example .env                         # Get a new .env file.
+vi .env                                     # Configure all environment variables.
+nhound --help                               # To see all the options.
+nhound -l debug --verbose                   # After the environment variables are configured.
+```
+
+**_⚠️ Please do report any bugs you find._**
+
 ## Virtual Environment
 
-Please use a virtual environment when developing and do run `tox` from time to
-time to make sure that your changes are compatible with all the Python version
-we have to support.
+Please use a virtual environment when developing.
 
 ## pre-commit
 
@@ -36,20 +54,10 @@ take time to run. The latter will run all the tests.
 
 ### Coverage
 
-We have 100% test coverage — with a few cheats using `pragma: no sover` for code
-should be excluded.
+We aim for 100% test coverage — with a few cheats using `pragma: no cover` for
+code should be excluded.
 
 The GHA should create a nice coverage report.
-
-## Release
-
-There is a GitHub Action that will create a
-[semantic release](https://python-semantic-release.readthedocs.io/en/latest/)
-for Setupr.
-
-This is why
-[conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) are
-essential, especially in PR titles.
 
 ## Linters
 
@@ -70,3 +78,13 @@ and `NHOUND_SMTP_PORT=1025` or to whatever values you want them to be.
 Note that if you set `NHOUND_SMTP_USERNAME` and `NHOUND_SMTP_PASSWORD`, your
 test server will use `STARTTLS` which might not work unless you have setup TLS
 certificates.
+
+## Release
+
+There is a GitHub Action that will create a
+[semantic release](https://python-semantic-release.readthedocs.io/en/latest/)
+for Setupr.
+
+This is why
+[conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) are
+essential, especially in PR titles.
