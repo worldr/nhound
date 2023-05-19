@@ -7,7 +7,17 @@ import structlog
 
 rlog = structlog.get_logger("nhound.user")
 
-Page = namedtuple("Page", ["uuid", "title", "url", "created_time", "last_edited_time"])
+Page = namedtuple(
+    "Page",
+    [
+        "uuid",
+        "title",
+        "url",
+        "created_time",
+        "last_edited_time",
+        "threashold_time",
+    ],
+)
 
 
 class User:
@@ -18,7 +28,7 @@ class User:
         self._uuid = uuid
         self._name = name
         self._email = email
-        self.pages = set()  # type: set[Page]
+        self.pages: set[Page] = set()
 
     def __repr__(self) -> str:
         """Repr."""

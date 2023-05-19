@@ -13,7 +13,12 @@ from nhound.email import IEMail
 from nhound.user import Page
 
 fake_page = Page(
-    "uuid", "fake title", "http://fake.com", pendulum.now("UTC"), pendulum.now("UTC")
+    "uuid",
+    "fake title",
+    "http://fake.com",
+    pendulum.now("UTC"),
+    pendulum.now("UTC"),
+    pendulum.now("UTC"),
 )
 
 

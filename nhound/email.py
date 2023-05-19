@@ -15,8 +15,7 @@ class IEMail:
     # Template for email body in HTML format.
     html = """
 <h1>Hi {{ name }},</h1>
-<p>The following {{pages|length}} Notion page{% if pages|length > 1 %}s{% endif %} require your attension:
-require your attension:</p>
+<p>The following {{pages|length}} Notion page{% if pages|length > 1 %}s{% endif %} require your attention:</p>
 <dl>
 {% for page in pages %}
     <dt>{{ page.title }}</dt>
@@ -34,7 +33,7 @@ require your attension:</p>
     text = """
 Hi {{ name }},
 
-The following {{pages|length}} Notion pages{% if pages|length > 1 %}s{% endif %}require your attension:
+The following {{pages|length}} Notion pages{% if pages|length > 1 %}s{% endif %}require your attention:
 {% for page in pages %}
     - {{ page.title }} -- {{ page.url }}.
 {% endfor %}
@@ -57,9 +56,9 @@ Nhound bot.
         sz = len(body_params["pages"])
         if sz == 0:
             return True
-        subject = f"{sz} Notion pages requires your attension"
+        subject = f"{sz} Notion pages requires your attention"
         if sz == 1:
-            subject = f"{sz} Notion page requires your attension"
+            subject = f"{sz} Notion page requires your attention"
         try:
             with self._email:
                 self._email.send(
