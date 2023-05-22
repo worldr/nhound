@@ -67,6 +67,9 @@ class INotion:
             if block["type"] == "callout":
                 for item in block["callout"]["rich_text"]:
                     if item["type"] == "mention":
+                        if "user" not in item["mention"]:
+                            rlog.debug("No user in callout", item=item)
+                            continue
                         usr = self._cohort.get_by_uuid(item["mention"]["user"]["id"])
                         if usr is not None:
                             users.append(usr)
