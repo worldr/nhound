@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nhound"
-version = "0.1.0"
+version = "0.1.1"
 description = "Notion hound, as in nagging you to keep content up to date."
 authors = ["Dr Yann Golanski <ygg@worldr.com>"]
 keywords = ["worldr"]
