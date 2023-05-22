@@ -26,30 +26,47 @@ jobs:
             - name: 'Run checks'
               uses: ./.github/workflows/run-checks
 
-    tox:
-        needs: quality
+    matrix:
         runs-on: ubuntu-latest
+        needs: quality
         strategy:
             matrix:
                 python-version: ['3.9', '3.10', '3.11']
+
         steps:
-            - name: 'Check out'
-              uses: actions/checkout@v3
+            - uses: actions/checkout@v3
+
+            - name: 'Setup Python version'
+              uses: actions/setup-python@v4
+              with:
+                  python-version: ${{ matrix.python-version }}
 
             - name: 'Set up the environment'
               uses: ./.github/workflows/setup-poetry-env
               with:
                   python-version: ${{ matrix.python-version }}
 
-            - name: 'Test with tox'
+            - name: 'Setup GnuPG'
               run: |
+                  sudo apt-get update
+                  sudo apt-get install -y gnupg
+
+            - name: 'Test with pytest-cov'
+              run: |
+                  mkdir -p ./artifacts
                   source .venv/bin/activate
-                  poetry add "tox-gh-actions==v2.9.1"
-                  tox
+                  pytest \
+                    --slow \
+                    --junitxml=./artifacts/pytest-${{ matrix.python-version }}.xml \
+                    --cov-report=term-missing \
+                    --cov=nhound \
+                    --cov=tests \
+                    tests/ \
+                    | tee ./artifacts/pytest-${{ matrix.python-version }}.txt
 
     release:
         # https://github.com/relekang/python-semantic-release/issues/311
-        needs: tox
+        needs: matrix
         runs-on: ubuntu-latest
         concurrency: release
 
@@ -57,8 +74,7 @@ jobs:
             - uses: actions/checkout@v3
               with:
                   fetch-depth: 0
-                  token: ${{ secrets.GH_TOKEN }}
-
+                  token: ${{ secrets.PAT }}
             - name: 'Python Semantic Release'
               uses: relekang/python-semantic-release@v7.33.3
               with:
