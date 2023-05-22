@@ -53,6 +53,7 @@ def test_join_with_oxford_commas(items: tuple, text: str) -> None:
     [
         ({}, 500, VersionCheck.UNKNOWN),
         ({}, 404, VersionCheck.UNKNOWN),
+        ({"tag_name": "v0.0.0"}, 200, VersionCheck.LAGGING),
         ({"tag_name": f"v{__version__}"}, 200, VersionCheck.LATEST),
     ],
 )
