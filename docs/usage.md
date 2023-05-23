@@ -39,6 +39,10 @@ The formate of this is
   - `a year`
   - …
 
+A nice way to update a page is to add a `@today` to the callout block. It should
+count as a page modification and gives an indication as to when the page was
+viewed last.
+
 ## On the runner side
 
 ### Runner
